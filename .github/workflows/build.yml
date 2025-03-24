@@ -1,0 +1,47 @@
+name: Azure DevOps Repository Inventory
+
+on:
+  # Run daily at 10 PM UTC
+  schedule:
+    - cron: '0 22 * * *'
+  # Allow manual triggering
+  workflow_dispatch:
+  # Optional: Run on pushes to main branch
+  push:
+    branches:
+      - main
+
+jobs:
+  generate-inventory:
+    name: Generate Repository Inventory
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      
+      - name: Generate Azure DevOps Inventory
+        env:
+            ORG_NAME: ${{ secrets.AZURE_DEVOPS_ORG }}
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/output"
+          
+          # Install tools and run inventory
+          dotnet tool restore
+          dotnet AZDOI inventory repositories $ORG_NAME "$GITHUB_WORKSPACE/output" --entra-id-auth --run-in-parallel
+      
+      - name: Upload inventory report
+        uses: actions/upload-artifact@v4
+        with:
+          name: AzureDevOpsInventory
+          path: ${{ github.workspace }}/output
