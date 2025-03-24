@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "azdoi": {
+      "version": "2025.3.24.114",
+      "commands": [
+        "azdoi"
+      ],
+      "rollForward": false
+    }
+  }
+}
